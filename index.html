@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#060a1f">
+
+    <title>HisabX | Student Expense Tracker</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Chart.js loads first, then our script (both use defer so the order is kept) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+
+<div class="app-container">
+
+    <!-- ==================== Sidebar ==================== -->
+    <aside class="sidebar">
+        <div class="logo">
+            <span class="logo-icon">◈</span>
+            <span class="logo-text">HisabX</span>
+        </div>
+
+        <p class="menu-label">MENU</p>
+
+        <nav class="sidebar-nav" aria-label="Main navigation">
+            <a href="#dashboard" class="nav-link active" data-target="dashboard" title="Dashboard">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="3" width="7" height="9" rx="2"/>
+                    <rect x="14" y="3" width="7" height="5" rx="2"/>
+                    <rect x="14" y="12" width="7" height="9" rx="2"/>
+                    <rect x="3" y="16" width="7" height="5" rx="2"/>
+                </svg>
+                <span class="nav-text">Dashboard</span>
+            </a>
+
+            <a href="#budget" class="nav-link" data-target="budget" title="Budget">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="9"/>
+                    <circle cx="12" cy="12" r="5"/>
+                    <circle cx="12" cy="12" r="1.2"/>
+                </svg>
+                <span class="nav-text">Budget</span>
+            </a>
+
+            <a href="#analytics" class="nav-link" data-target="analytics" title="Analytics">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 20V10"/>
+                    <path d="M10 20V4"/>
+                    <path d="M16 20v-7"/>
+                    <path d="M3 21h18"/>
+                </svg>
+                <span class="nav-text">Analytics</span>
+            </a>
+
+            <a href="#transactions" class="nav-link" data-target="transactions" title="Transactions">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M7 7h12l-3-3"/>
+                    <path d="M17 17H5l3 3"/>
+                </svg>
+                <span class="nav-text">Transactions</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <span class="help-icon">💡</span>
+                <h3>Smart Saving Tip</h3>
+                <p id="sidebarTip">Track small expenses to understand where your money goes.</p>
+            </div>
+
+            <p class="sidebar-footer">HisabX v2.0</p>
+        </div>
+    </aside>
+
+
+    <!-- ==================== Main Content ==================== -->
+    <main class="main-content" id="dashboard">
+
+        <!-- Header -->
+        <header class="topbar">
+            <div class="topbar-text">
+                <div class="mobile-brand">
+                    <span class="logo-icon">◈</span>
+                    <span>SpendWise</span>
+                </div>
+
+                <p class="welcome-text">YOUR PERSONAL FINANCE SPACE</p>
+                <h1>Expense Dashboard</h1>
+                <p class="subtitle">Manage your money. Build better habits.</p>
+            </div>
+
+            <div class="header-actions">
+                <div class="date-box">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="18" rx="3"/>
+                        <path d="M16 2v4M8 2v4M3 10h18"/>
+                    </svg>
+                    <span id="currentDate"></span>
+                </div>
+
+                <button class="primary-btn" id="openExpenseModal" type="button">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Expense
+                </button>
+            </div>
+        </header>
+
+
+        <!-- Budget Alert -->
+        <div id="budgetAlert" class="budget-alert hidden" role="alert"></div>
+
+
+        <!-- Summary Cards -->
+        <section class="summary-grid" aria-label="Summary">
+
+            <article class="summary-card balance-card">
+                <div class="card-top">
+                    <span class="card-label">Total Expenses</span>
+                    <span class="card-icon">₹</span>
+                </div>
+
+                <h2 id="totalExpenses">₹0</h2>
+                <p class="card-description" id="totalExpensesNote">Your spending this month</p>
+            </article>
+
+
+            <article class="summary-card">
+                <div class="card-top">
+                    <span class="card-label">Monthly Budget</span>
+                    <span class="card-icon purple">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <circle cx="12" cy="12" r="5"/>
+                            <circle cx="12" cy="12" r="1.2"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <h2 id="monthlyBudget">₹10,000</h2>
+                <p class="card-description" id="budgetNote">Your spending limit</p>
+            </article>
+
+
+            <article class="summary-card">
+                <div class="card-top">
+                    <span class="card-label">Remaining Budget</span>
+                    <span class="card-icon green">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M3 17l6-6 4 4 8-8"/>
+                            <path d="M15 7h6v6"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <h2 id="remainingBudget">₹10,000</h2>
+                <p class="card-description" id="remainingBudgetNote">Money left to spend</p>
+            </article>
+
+
+            <article class="summary-card">
+                <div class="card-top">
+                    <span class="card-label">Total Transactions</span>
+                    <span class="card-icon orange">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M7 7h12l-3-3"/>
+                            <path d="M17 17H5l3 3"/>
+                        </svg>
+                    </span>
+                </div>
+
+                <h2 id="transactionCount">0</h2>
+                <p class="card-description" id="transactionNote">Expenses this month</p>
+            </article>
+
+        </section>
+
+
+        <!-- Budget Progress -->
+        <section class="panel budget-panel" id="budget">
+
+            <div class="section-heading">
+                <div>
+                    <h2>Monthly Budget</h2>
+                    <p>Keep your spending under control.</p>
+                </div>
+
+                <button class="text-btn" id="editBudgetBtn" type="button">
+                    Edit Budget ✎
+                </button>
+            </div>
+
+            <div class="budget-progress-info">
+                <div class="budget-used">
+                    <span>Budget used</span>
+                    <span class="status-chip safe" id="budgetStatus">On track</span>
+                </div>
+                <strong id="budgetPercentage">0%</strong>
+            </div>
+
+            <div class="progress-track">
+                <div class="progress-bar" id="budgetProgress"></div>
+            </div>
+
+            <div class="budget-bottom">
+                <span id="budgetSpentText">₹0 spent</span>
+                <span id="budgetLimitText">₹10,000 limit</span>
+            </div>
+
+        </section>
+
+
+        <!-- Analytics -->
+        <section class="analytics-grid" id="analytics">
+
+            <article class="panel chart-panel">
+                <div class="section-heading chart-heading">
+                    <div>
+                        <h2>Expense Analytics</h2>
+                        <p id="chartSubtitle">Daily spending this month</p>
+                    </div>
+
+                    <div class="chart-tabs" role="group" aria-label="Chart type">
+                        <button type="button" class="chart-tab active" data-mode="daily" aria-pressed="true">Daily</button>
+                        <button type="button" class="chart-tab" data-mode="category" aria-pressed="false">Category</button>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="expenseChart"></canvas>
+                    <div class="chart-empty hidden" id="chartEmpty">
+                        <span>📊</span>
+                        <p id="chartEmptyText">Add an expense to see your analytics.</p>
+                    </div>
+                </div>
+
+                <div class="chart-insights" id="chartInsights"></div>
+            </article>
+
+
+            <article class="panel category-panel">
+                <div class="section-heading">
+                    <div>
+                        <h2>Category Breakdown</h2>
+                        <p>Your spending by category</p>
+                    </div>
+                </div>
+
+                <div id="categoryBreakdown" class="category-list"></div>
+            </article>
+
+        </section>
+
+
+        <!-- Transactions -->
+        <section class="panel transactions-panel" id="transactions">
+
+            <div class="section-heading transaction-heading">
+                <div>
+                    <h2>Recent Transactions</h2>
+                    <p id="transactionSubtitle">Review your latest expenses</p>
+                </div>
+
+                <div class="transaction-filters">
+                    <button type="button" class="text-btn hidden" id="resetFilters">
+                        Reset
+                    </button>
+
+                    <input
+                        type="month"
+                        id="monthFilter"
+                        aria-label="Filter transactions by month"
+                    >
+
+                    <select id="categoryFilter" aria-label="Filter by category">
+                        <option value="All">All Categories</option>
+                        <option value="Food">Food</option>
+                        <option value="Travel">Travel</option>
+                        <option value="Education">Education</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Bills">Bills</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>EXPENSE</th>
+                            <th>CATEGORY</th>
+                            <th>DATE</th>
+                            <th>AMOUNT</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="transactionList"></tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="empty-state">
+                <span>🧾</span>
+                <h3>No expenses found</h3>
+                <p>Add your first expense to get started.</p>
+            </div>
+
+        </section>
+
+
+        <footer class="footer">
+            <p>HisabX — Student Expense Tracker</p>
+            <p>Made for smarter money management.</p>
+        </footer>
+
+    </main>
+
+</div>
+
+
+<!-- ==================== Add / Edit Expense Modal ==================== -->
+<div class="modal-overlay hidden" id="expenseModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+
+    <div class="modal">
+
+        <div class="modal-heading">
+            <div>
+                <p class="welcome-text">TRANSACTION DETAILS</p>
+                <h2 id="modalTitle">Add New Expense</h2>
+            </div>
+
+            <button class="close-btn" id="closeExpenseModal" type="button" aria-label="Close">
+                ×
+            </button>
+        </div>
+
+
+        <form id="expenseForm">
+
+            <div class="field">
+                <label for="expenseName">Expense Name</label>
+
+                <input
+                    type="text"
+                    id="expenseName"
+                    placeholder="e.g. Lunch, Bus Ticket"
+                    maxlength="80"
+                    required
+                >
+            </div>
+
+
+            <div class="field-row">
+
+                <div class="field">
+                    <label for="expenseAmount">Amount</label>
+
+                    <div class="input-prefix">
+                        <span>₹</span>
+
+                        <input
+                            type="number"
+                            id="expenseAmount"
+                            placeholder="0.00"
+                            min="0.01"
+                            max="100000000"
+                            step="0.01"
+                            required
+                        >
+                    </div>
+                </div>
+
+
+                <div class="field">
+                    <label for="expenseDate">Date</label>
+
+                    <input
+                        type="date"
+                        id="expenseDate"
+                        required
+                    >
+                </div>
+
+            </div>
+
+
+            <div class="field">
+                <label for="expenseCategory">Category</label>
+
+                <select id="expenseCategory" required>
+                    <option value="Food">🍔 Food</option>
+                    <option value="Travel">🚌 Travel</option>
+                    <option value="Education">📚 Education</option>
+                    <option value="Shopping">🛍️ Shopping</option>
+                    <option value="Bills">💡 Bills</option>
+                    <option value="Other">📦 Other</option>
+                </select>
+            </div>
+
+
+            <div class="field">
+                <label for="expenseNote">Note <span class="optional">(Optional)</span></label>
+
+                <textarea
+                    id="expenseNote"
+                    placeholder="Add a short note..."
+                    maxlength="200"
+                    rows="3"
+                ></textarea>
+            </div>
+
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    id="cancelExpense"
+                >
+                    Cancel
+                </button>
+
+                <button type="submit" class="primary-btn">
+                    Save Expense
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ==================== Budget Modal ==================== -->
+<div class="modal-overlay hidden" id="budgetModal" role="dialog" aria-modal="true" aria-label="Set monthly budget">
+
+    <div class="modal budget-modal">
+
+        <div class="modal-heading">
+            <div>
+                <p class="welcome-text">FINANCIAL PLANNING</p>
+                <h2>Set Monthly Budget</h2>
+            </div>
+
+            <button class="close-btn" id="closeBudgetModal" type="button" aria-label="Close">
+                ×
+            </button>
+        </div>
+
+        <form id="budgetForm">
+
+            <div class="field">
+                <label for="budgetInput">Monthly Budget</label>
+
+                <div class="input-prefix">
+                    <span>₹</span>
+
+                    <input
+                        type="number"
+                        id="budgetInput"
+                        min="0"
+                        max="100000000"
+                        step="0.01"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    id="cancelBudget"
+                >
+                    Cancel
+                </button>
+
+                <button type="submit" class="primary-btn">
+                    Save Budget
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>
